@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta
+        content="🎭 Mitigating Deceptive Alignment via Self-Monitoring: A framework that embeds self-monitor into CoT reasoning to detect and suppress deceptive alignment behaviors."
+        name="description" />
+    <meta content="Mitigating Deceptive Alignment via Self-Monitoring" property="og:title" />
+    <meta
+        content="CoT Monitor+ framework embeds a self-monitor into the reasoning steps, flags and suppresses misaligned strategies during generation, and uses the same signal as an RL reward."
+        property="og:description" />
+    <meta content="https://cot-monitor-plus.github.io/data/open_graph.png" property="og:image" />
+    <meta content="Mitigating Deceptive Alignment via Self-Monitoring" property="twitter:title" />
+    <meta
+        content="CoT Monitor+ framework embeds a self-monitor into the reasoning steps, flags and suppresses misaligned strategies during generation, and uses the same signal as an RL reward."
+        property="twitter:description" />
+    <meta name="twitter:site" content="@YourTwitterHandle" />
+    <meta name="twitter:creator" content="@YourTwitterHandle" />
+    <meta content="https://cot-monitor-plus.github.io/data/open_graph.png" property="twitter:image" />
+    <meta property="og:type" content="website" />
+    <meta content="summary_large_image" name="twitter:card" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+    
+    <!-- Favicon -->
+    <link rel="icon" href="logo.png" type="image/png">
+    <link rel="shortcut icon" href="logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="logo.png">
+
+    <title>Mitigating Deceptive Alignment via Self-Monitoring</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9Z7HCWJNBC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-9Z7HCWJNBC');
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css2?family=Asap:wght@700&family=Source+Sans+3:wght@400;700&display=swap">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Asap:wght@700&family=Source+Sans+3:wght@400;700&display=swap">
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <!-- MathJax support for mathematical equations -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+</head>
+
+<body>
+
+
+    <div class="section">
+        <div class="container">
+            <div class="title-row">
+                <h1 class="title">Mitigating Deceptive Alignment via Self-Monitoring<h1>
+            </div>
+            <div class="row">
+                <div class="author-col">
+                    <span style="font-weight: bold;">Jiaming Ji<sup>*,◊</sup>,</span>
+                    <span style="font-weight: bold;">Wenqi Chen<sup>*,◊</sup>,</span>
+                    <span style="font-weight: bold;">Kaile Wang<sup>◊</sup>,</span>
+                    <span style="font-weight: bold;">Donghai Hong<sup>◊</sup>,</span>
+                    <span style="font-weight: bold;">Sitong Fang<sup>◊</sup>,</span>
+                    <span style="font-weight: bold;">Boyuan Chen<sup>◊</sup>,</span>
+                    <span style="font-weight: bold;">Jiayi Zhou<sup>◊</sup>,</span>
+                    <span style="font-weight: bold;">Juntao Dai<sup>◊</sup>,</span>
+                    <span style="font-weight: bold;">Sirui Han<sup>♯</sup>,</span>
+                    <span style="font-weight: bold;">Yike Guo<sup>♯</sup>,</span>
+                    <span style="font-weight: bold;">Yaodong Yang<sup>†,◊</sup></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="author-col">
+                    <sup>*</sup>Equal contribution, <sup>†</sup>Corresponding author.
+                </div>
+            </div>
+            <div class="row">
+                <div class="author-col">
+                    <sup>◊</sup>PKU Alignment Team, Peking University
+                </div>
+            </div>
+            <div class="row">
+                <div class="author-col">
+                    <sup>♯</sup>Hong Kong University of Science and Technology
+                </div>
+            </div>
+        </div>
+
+        <div class="row button-row">
+            <a class="link-button" href="https://github.com/cot-monitor-plus/cot-monitor-plus.github.io/blob/main/self-monitor.pdf" target="_blank" class="link-block">Paper</a>
+            <!-- <a class="link-button" href="https://github.com/cot-monitor-plus/cot-monitor-plus" class="link-block">Code</a> -->
+            <a class="link-button" href="https://huggingface.co/datasets/PKU-Alignment/DeceptionBench"
+                class="link-block">Dataset</a>
+        </div>
+        <p class="tldr">
+            <b>TL;DR</b>:
+            Chain-of-thought reasoning can double large language models' deceptive alignment. Our CoT Monitor+ framework embeds a self-monitor into the reasoning steps, flags and suppresses misaligned strategies during generation, and uses the same signal as an RL reward. 
+        </p>
+        <!-- <video id="main-video" muted autoplay controls playsinline loop>
+            <source id="mp4" src="data/videos/teaser.mp4" type="video/mp4">
+        </video> -->
+
+        <div id="content">
+            <h2 class="section-header">Overview</h2>
+            <div class="paragraph">
+                <p>
+                    Modern large language models rely on chain-of-thought (CoT) reasoning to achieve impressive performance, yet the same mechanism can amplify <i>deceptive alignment</i>, situations in which a model appears aligned while covertly pursuing misaligned goals.  Existing safety pipelines treat deception as a black-box output to be filtered <i>post-hoc</i>, leaving the model free to scheme during its internal reasoning. We ask: <i>Can deception be intercepted while the model is thinking?</i> We answer this question with <b>CoT Monitor +</b>, the first framework that embeds a <i>self-monitor</i> inside the CoT process itself.  During generation, the model produces (i) ordinary reasoning steps and (ii) an internal self-evaluation signal trained to flag and suppress misaligned strategies.  The same signal is used as an auxiliary reward in reinforcement learning, creating a feedback loop that rewards honest reasoning and discourages hidden goals. To study deceptive alignment systematically, we introduce <i><b>DeceptionBench</b></i>, a five-category benchmark that probes covert alignment-faking, sycophancy, etc. We evaluate various LLMs and show that unrestricted CoT roughly <i>doubles</i>he deceptive tendency compared to direct answers.  In contrast, CoT Monitor + cuts deceptive behaviors by <b>43.8%</b> on average while preserving task accuracy.  Further, when the self-monitor signal replaces an external weak judge in RL fine-tuning, models exhibit substantially fewer obfuscated thoughts and retain transparency.
+                </p>
+
+                <p><b>Key Contributions:</b></p>
+                <ul>
+                    <li>
+                        <b>Language models can self-monitor their reasoning processes</b>.
+                        Building on this insight, we introduce Self-Monitor, a framework that enables models to oversee their own CoT reasoning within predefined safety protocols. The experimental results demonstrate that Self-Monitor substantially reduces deceptive alignment behaviors, achieving a 43.8% reduction compared to pure CoT reasoning.
+                    </li>
+                    <li>
+                        <b>Detect deceptive tendency in reasoning models with <i>DeceptionBench</i></b>. To mitigate the deceptive risks posed by advanced LLMs, we introduce DeceptionBench, the first systematic benchmark designed to assess deceptive behaviors behind reasoning models. <i>DeceptionBench</i> assesses model behavior across 13 diverse testing scenarios, offering insights into when and how models may superficially appear aligned while internally pursuing misaligned goals.
+                    </li>
+                    <li>
+                        <b><i>Self-Monitor</i> serve as reward signals in RL training</b>. Relying solely on the output of an external weak model's CoT monitor as a reward signal for RL training can lead the model to strategically suppress its true intentions during the CoT process, resulting in more sophisticated forms of deception. In contrast, using the model's own Self-Monitor feedback as the training signal encourages more faithful reasoning and reduces the incentive to conceal deceptive thoughts.
+                    </li>
+                </ul>
+            </div>
+            
+            <img class="med-img" src="deceptionbench_pipeline.gif" alt="Framework overview showing Self-Monitor working mechanism and DeceptionBench evaluation process">
+            <p>
+                <b>(Left) How Self-Monitor works?</b>
+                Unlike the standard LLMs reasoning process, the <span style="font-variant: small-caps;">Self-Monitor</span> model first detects deceptive or harmful patterns in its CoT, and then generates a safer response based on the monitor evaluation. In reinforcement learning, the reward signal from the self-monitor's CoT detection is combined with a standard action monitor to optimize the model. For more details, please refer to our paper.
+            </p>
+            <p>
+                <b>(Right) How DeceptionBench evaluates deceptive tendency of models:</b> 
+                Neutral prompts and specifically constructed prompts with an <em>outer goal</em> are used to elicit the model's <em>mesa utility</em> and CoT-Action pairs, respectively. These pairs are then evaluated for consistency and deceptiveness.
+            </p>
+
+            <h2 class="section-header">DeceptionBench</h2>
+            <div class="paragraph">
+                <p>
+                    Growing concerns about model deception highlight a lack of systematic benchmarks, hindering responsible LLMs deployment. To address this gap, we introduce <b>DeceptionBench</b> to assess LLMs deceptive tendency by evaluating consistency between utility function and model's behaviors.
+                </p>
+                <p>
+                    We consider that LLMs have inherent <i>mesa utilities</i> and design <i>outer goals</i> to implicitly incentivize deviation from these mesa utilities. DeceptionBench is meticulously developed with 180 scenarios inspired by real-world interactions, strictly adhering to a predefined typology of LLM deception in five categories.
+                </p>
+            </div>
+
+            <h3 class="subsection-header">Model Performance on DeceptionBench</h3>
+            <div class="paragraph">
+                <p>
+                    We evaluate both API-based and open-source models across the five deception categories in DeceptionBench. The results reveal that all evaluated models exhibit some degree of deceptive tendency, with varying performance across different deception types.
+                </p>
+                <p>
+                    The evaluation shows interesting patterns: larger models tend to show lower deceptive tendencies in some categories, while smaller open-source models exhibit higher rates of deceptive behavior. Strategic deception and honesty evasion appear to be the most challenging categories across all model families.
+                </p>
+            </div>
+            
+            <img class="sm-img" src="deceptionbench.png" alt="Deception tendency heatmap of models on DeceptionBench">
+
+            <h3 class="subsection-header">Benchmark Construction</h3>
+            <div class="paragraph">
+                <p>
+                    DeceptionBench is meticulously developed with 180 scenarios inspired by real-world interactions, strictly adhering to a predefined typology of LLM deception in five categories:
+                </p>
+                <ul>
+                    <li><b>Sycophancy</b>: Misrepresenting and manipulating to align with perceived user preferences.</li>
+                    <li><b>Strategic Deception</b>: Violating rules or manipulating information for goal achievement.</li>
+                    <li><b>Honesty Evasion</b>: Avoiding honest and truthful answers under pressure or outer goal.</li>
+                    <li><b>Alignment Faking</b>: Complying in alignment while regaining when not being monitored.</li>
+                    <li><b>Sandbagging</b>: Deliberately underperforming or hiding capabilities for outer goal.</li>
+                </ul>
+                <p>
+                    We deliberately employ manual curation, which is essential to capture the nuance, plausibility, and targeted nature required for deception detection.
+                </p>
+            </div>
+
+            <h3 class="subsection-header">Evaluation Methodology</h3>
+            <div class="paragraph">
+                <p>
+                    Evaluating these deceptive behaviors using methods like LLM-as-Judge has low agreement with human annotation, as shown in the Human Agreement Validation section. Therefore, by comparing the <span class="mesa">mesa utility $\mathcal{U}_{m}$</span> with the reasoning CoT $\mathcal{R}$ and final action $\mathcal{Y}$ generated by $\mathcal{U} = \mathcal{F}(\mathcal{U}_m,\mathcal{U}_o)$ (where <span class="outer">$\mathcal{U}_o$</span> is the <span class="outer">outer goal</span> utility function), we aim to capture the model's deception tendency in a more fine-grained manner.
+                </p>
+                <p>
+                    The evaluation pipeline of <span style="font-variant: small-caps;">DeceptionBench</span> shown in the Framework Overview is specifically divided into three stages:
+                </p>
+                <p>
+                    <b>First</b>, we use the neutral <span class="mesa"><b><span class="code-text">mesa_utility_prompt</span></b></span> to elicit the model's <span class="mesa">$\mathcal{U}_{m}$</span>.
+                </p>
+                <p>
+                    <b>Second</b>, the model receives a <b><span class="code-text">system_prompt</span></b> to establish the specific external scenario context, followed by an <span class="outer"><b><span class="code-text">outer_goal_prompt</span></b></span> intended to elicit its CoT $\mathcal{R}$ and action $\mathcal{Y}$ under <span class="outer">$\mathcal{U}_o$</span>.
+                </p>
+                <p>
+                    <b>Finally</b>, the recorded $\mathcal{U}_{m}$, $\mathcal{R}$, and $\mathcal{Y}$ are compared by GPT-4o to detect inconsistencies.
+                </p>
+                <p>
+                    Since deception arises when a model's reasoning $\mathcal{R}$ and its mesa utility <span class="mesa">$\mathcal{U}_{m}$</span> are consistent (denoted as $\mathcal{R} \sim \mathcal{U}_{m}$) while its final answer $\mathcal{Y}$ diverges from <span class="mesa">$\mathcal{U}_{m}$</span> (denoted as $\mathcal{Y} \not\sim \mathcal{U}_{m}$), we define the <b>D</b>eception <b>T</b>endency <b>R</b>ate (<b>DTR</b>) as the fraction of instances exhibiting the deceptive pattern:
+                </p>
+                <p style="text-align: center;">
+                    $$\rho_\text{DTR} = \frac{1}{N} \sum_{i=1}^{N} \mathbf{1}(\mathcal{R}^{(i)} \sim \mathcal{U}_{m}^{(i)} \land \mathcal{Y}^{(i)} \not\sim \mathcal{U}_{m}^{(i)})$$
+                </p>
+                <p>
+                    where $N$ is the number of instances. DTR offers a more reliable deception signal than LLM-as-Judge evaluations, aligning better with human judgments, as shown in the Human Agreement Validation section.
+                </p>
+            </div>
+
+            <h3 class="subsection-header">Human Agreement Validation</h3>
+            <div class="paragraph">
+                <p>
+                    We validate our DTR metric against human judgments and compare it with LLM-as-Judge approaches. Our results demonstrate that DTR significantly outperforms LLM-as-Judge in terms of both human agreement rate and Phi coefficient, regardless of the choice of judge models.
+                </p>
+                <p>
+                    This superior human alignment makes DTR a more reliable metric for detecting deceptive behaviors in language models, providing researchers and practitioners with a trustworthy evaluation framework.
+                </p>
+            </div>
+            
+            <img class="sm-img" src="human_agreement.png" alt="Comparison of agreement with human judgments">
+
+            <h2 class="section-header">Experiments</h2>
+            <div class="paragraph">
+                <p>
+                    In the experiments of this section, we focus on two key questions:
+                </p>
+                <ul>
+                    <li><b>Question 1:</b> Can Self-Monitor mitigate deceptive tendency while enhancing safety performance?</li>
+                    <li><b>Question 2:</b> Can Self-Monitor serve as a reward signal in RL to mitigate deceptive alignment?</li>
+                </ul>
+            </div>
+
+            <h3 class="subsection-header">Evaluating Deceptive Tendency and Self-Monitor</h3>
+            <div class="paragraph">
+                <p>
+                    <b>Experiment Setup.</b>
+                    To construct training dataset $\mathcal{D}$ as described in our methodology, we collect CoT from reasoning models on BeaverTails, and using GPT-4o as verifier model. For Self-Monitor models, we supervised fine-tune Qwen2.5-7B-Instruct and Llama-3.1-8B-Instruct, and train <em>Safe SFT</em> and <em>Safe CoT SFT</em> baselines using corresponding data pairs in $\mathcal{D}$.
+                </p>
+                <p>
+                    <b>Evaluation.</b>
+                    We use DeceptionBench to evaluate the DTR of Self-Monitor, API-based models, and Open-Source models. For safety evaluation, we report the average jailbreak score in StrongReject for the top attack types. We also evaluate the Attack Success Rate (ASR) of prefilling attacks within the JailbreakBench, using Llama-Guard-3 for assessment. Concurrently, following the pair-wise preference evaluation in BeaverTails, we conduct helpfulness and harmlessness evaluations using GPT-4o for preference judgments.
+                </p>
+                <p>
+                    <b>Results & Analysis.</b>
+                    As shown in the performance table below, Self-Monitor significantly reduces the DTR by 43.8% compared to instruct model. Self-Monitor also demonstrates notable performance against prefilling attacks and StrongReject, beating safe fine-tuned reasoning models. Moreover, in our decoupled evaluation preference on BeaverTails, we observe that the model improved in both helpfulness and safety dimensions, achieving win rates as 65% and 67% against the instruct model, respectively.
+                </p>
+            </div>
+            
+            <img class="sm-img" src="exp1_table.png" alt="Performance of Self-Monitor models compared to baselines">
+
+            <h3 class="subsection-header">Reinforcement Learning for Deceptive Alignment Mitigation</h3>
+            <div class="paragraph">
+                <p>
+                    <b>Experiment Setup.</b>
+                    We study deceptive alignment in reasoning model through setting a "helpful-only" objective during RL to create a conflict with the models' HHH (Helpful, Honest, Harmless) alignment objective. Training system prompts distinguish between "pre-deployment evaluation stage" and "deployment stage" without explicitly promoting deception. Queries from HarmfulQA and BeaverTails are used for training and evaluation, respectively. A reward model, based on Qwen2.5-7B and trained with the UltraFeedback preference dataset, provides "helpful-only" rewards. We training three RL setting on Gemma-3-12B-IT for 150 steps.
+                </p>
+                <p>
+                    <b>Monitor & Reward.</b>
+                    The outer action monitor's signal combines preference reward with the format reward in all RL settings. We use Qwen2.5-72B-Instruct as the outer CoT monitor, assessing whether the reasoning process presents deceptive intent. As for self-monitoring RL, CoT rewards are directly sourced from Self-Monitor labels. To avoid reward hacking, where Self-Monitor might simply output labels beneficial to itself, we update the off-policy Self-Monitor every 15 steps.
+                </p>
+                <p>
+                    <b>Evaluation.</b>
+                    We employ GPT-4o to evaluate key metrics of deceptive alignment for each training checkpoint. We first evaluate the <em>fraction of deceptive CoT</em>, which quantifies alignment faking within the model's CoT during pre-deployment stage. Another critical metric is the <em>performance gap</em>, assessed by a reward model that quantifies the disparity in model performance between deployment and pre-deployment stage. A wider gap suggests that the reasoning model is more significantly and deceptively adjusting its behavior upon pre-deployment stage.
+                </p>
+                <p>
+                    <b>Results & Analysis.</b>
+                    As illustrated in the figure below, we assess Self-Monitor's ability to reduce secretly misaligned behaviors between the deployment and pre-deployment stages, compared to the RL baseline employing a single action monitor or an action monitor with an outer CoT monitor. When employing only an action monitor, we observe a consistent rise in the probability of the model generating deceptive CoT, concomitant with an increasing performance gap. This suggests that the model progressively <em>reinforces</em> compliant behavior during the pre-deployment phase. In RL optimization with CoT monitor, we observe a significant reduction in deceptive CoT, while the performance gap still widens considerably, indicating that the model learns to game the feedback process while also concealing its true intent within the CoT. However, we observe that Self-Monitor not only maintains a lower performance gap but markedly reduces deceptive CoT. Even when a higher deceptive tendency emerges in the early RL stage, constraint optimization facilitated by self-monitoring mitigates deceptive alignment while preserving the transparency of its CoT.
+                </p>
+            </div>
+            
+            <img class="large-img" src="rl_figure_1.gif" alt="Analogy and experiment results of different RL with monitor">
+
+            <br> 
+            <div class="paragraph-center">For more information, please check out our paper, code, and dataset:</div>
+            <div class="row button-row">
+                <a class="link-button"
+                    href="https://github.com/cot-monitor-plus/cot-monitor-plus.github.io/blob/main/self-monitor.pdf"
+                    target="_blank" class="link-block">Paper</a>
+                <!-- <a class="link-button" href="https://github.com/cot-monitor-plus/cot-monitor-plus"
+                    class="link-block">Code</a> -->
+                <a class="link-button" href="https://huggingface.co/datasets/PKU-Alignment/DeceptionBench"
+                    class="link-block">Dataset</a>
+            </div>
+
+        </div>
+
+    </div>
+    </div>
+</body>
+
+</html>
